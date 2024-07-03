@@ -1,4 +1,4 @@
-package Junior
+package junior
 
 func GetFactorial(a uint64) uint64 {
 	if a == 0 {

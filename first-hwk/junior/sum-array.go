@@ -1,4 +1,4 @@
-package Junior
+package junior
 
 func SumArray(arr []int) int {
 	sum := 0

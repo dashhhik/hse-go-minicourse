@@ -1,4 +1,4 @@
-package Junior
+package junior
 
 func ReverseString(s string) string {
 	runes := []rune(s)

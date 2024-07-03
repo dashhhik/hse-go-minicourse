@@ -1,4 +1,4 @@
-package Junior
+package junior
 
 func MaxOfThree(a, b, c int) int {
 	if a > b && a > c {

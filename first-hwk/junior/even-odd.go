@@ -1,4 +1,4 @@
-package Junior
+package junior
 
 func IsEvenOrOdd(a int) string {
 	if a%2 == 0 {

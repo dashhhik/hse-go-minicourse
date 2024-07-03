@@ -1,4 +1,4 @@
-package Junior
+package junior
 
 func AllPrimaryIntegers(n int) []int {
 	if n < 2 {

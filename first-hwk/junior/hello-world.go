@@ -1,4 +1,4 @@
-package Junior
+package junior
 
 import "fmt"
 

@@ -1,4 +1,4 @@
-package Junior
+package junior
 
 var isVowel = map[rune]bool{
 	'a': true,

@@ -1,4 +1,4 @@
-package Junior
+package junior
 
 type Rectangle struct {
 	Length, Width int
