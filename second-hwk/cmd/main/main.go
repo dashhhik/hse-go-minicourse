@@ -5,7 +5,6 @@ import (
 )
 
 func main() {
-
 	app := fiber.New()
 
 	app.Post("/account/create", CreateAccount)
