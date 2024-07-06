@@ -6,19 +6,19 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
 const url = "http://localhost:8080/account"
 
+var httpClient = &http.Client{}
+
 func main() {
 	var rootCmd = &cobra.Command{Use: "app"}
-	rootCmd.AddCommand(CreateAccountCmd)
-	rootCmd.AddCommand(GetAccountCmd)
-	rootCmd.AddCommand(UpdateAmountCmd)
-	rootCmd.AddCommand(GetAllAccountsCmd)
+	rootCmd.AddCommand(CreateAccountCmd, GetAccountCmd, UpdateAmountCmd, GetAllAccountsCmd, DeleteAccountCmd, ChangeAccountNameCmd)
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 }
 
@@ -28,24 +28,27 @@ var CreateAccountCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
-			fmt.Println("Account name is required")
+			log.Println("Account name is required")
 			return
 		}
 		data := map[string]string{"name": name}
-		jsonData, _ := json.Marshal(data)
-		resp, err := http.Post(url+"/create", "application/json", bytes.NewBuffer(jsonData))
+		jsonData, err := json.Marshal(data)
 		if err != nil {
-			fmt.Println(err)
+			log.Printf("Error marshalling data: %v\n", err)
+			return
+		}
+		resp, err := httpClient.Post(url, "application/json", bytes.NewBuffer(jsonData))
+		if err != nil {
+			log.Printf("Error making request: %v\n", err)
 			return
 		}
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			fmt.Printf("Failed to read response body: %v\n", err)
+			log.Printf("Failed to read response body: %v\n", err)
 			return
 		}
-
-		fmt.Printf("Response: %s\n", body)
+		log.Printf("Response: %s\n", body)
 	},
 }
 
@@ -55,22 +58,21 @@ var GetAccountCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
-			fmt.Println("Account name is required")
+			log.Println("Account name is required")
 			return
 		}
-		resp, err := http.Get(url + "/" + name)
+		resp, err := httpClient.Get(url + "/" + name)
 		if err != nil {
-			fmt.Println(err)
+			log.Printf("Error making request: %v\n", err)
 			return
 		}
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			fmt.Printf("Failed to read response body: %v\n", err)
+			log.Printf("Failed to read response body: %v\n", err)
 			return
 		}
-
-		fmt.Printf("Response: %s\n", body)
+		log.Printf("Response: %s\n", body)
 	},
 }
 
@@ -79,50 +81,126 @@ var UpdateAmountCmd = &cobra.Command{
 	Short: "Update account amount",
 	Run: func(cmd *cobra.Command, args []string) {
 		name, _ := cmd.Flags().GetString("name")
-		amount, _ := cmd.Flags().GetFloat64("amount")
+		balance, _ := cmd.Flags().GetFloat64("balance")
 		if name == "" {
-			fmt.Println("Account name is required")
+			log.Println("Account name is required")
 			return
 		}
-		if amount < 0 {
-			fmt.Println("Amount must be positive")
+		if balance < 0 {
+			log.Println("Balance must be non-negative")
 			return
 		}
-		data := map[string]interface{}{"name": name, "amount": amount}
-		jsonData, _ := json.Marshal(data)
-		resp, err := http.Post(url+"/update", "application/json", bytes.NewBuffer(jsonData))
+		data := map[string]interface{}{"balance": balance}
+		jsonData, err := json.Marshal(data)
 		if err != nil {
-			fmt.Println(err)
+			log.Printf("Error marshalling data: %v\n", err)
+			return
+		}
+		req, err := http.NewRequest(http.MethodPut, url+"/"+name, bytes.NewBuffer(jsonData))
+		if err != nil {
+			log.Printf("Error making request: %v\n", err)
+			return
+		}
+		req.Header.Set("Content-Type", "application/json")
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Printf("Error making request: %v\n", err)
 			return
 		}
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			fmt.Printf("Failed to read response body: %v\n", err)
+			log.Printf("Failed to read response body: %v\n", err)
 			return
 		}
-
-		fmt.Printf("Response: %s\n", body)
+		log.Printf("Response: %s\n", body)
 	},
 }
 
 var GetAllAccountsCmd = &cobra.Command{
-	Use:   "all",
+	Use:   "list",
 	Short: "Get all accounts",
 	Run: func(cmd *cobra.Command, args []string) {
-		resp, err := http.Get(url)
+		resp, err := httpClient.Get(url)
 		if err != nil {
-			fmt.Println(err)
+			log.Printf("Error making request: %v\n", err)
 			return
 		}
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			fmt.Printf("Failed to read response body: %v\n", err)
+			log.Printf("Failed to read response body: %v\n", err)
 			return
 		}
+		log.Printf("Response: %s\n", body)
+	},
+}
 
-		fmt.Printf("Response: %s\n", body)
+var DeleteAccountCmd = &cobra.Command{
+	Use:   "delete",
+	Short: "Delete account",
+	Run: func(cmd *cobra.Command, args []string) {
+		name, _ := cmd.Flags().GetString("name")
+		if name == "" {
+			log.Println("Account name is required")
+			return
+		}
+		req, err := http.NewRequest(http.MethodDelete, url+"/"+name, nil)
+		if err != nil {
+			log.Printf("Error creating request: %v\n", err)
+			return
+		}
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			log.Printf("Error making request: %v\n", err)
+			return
+		}
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Printf("Failed to read response body: %v\n", err)
+			return
+		}
+		log.Printf("Response: %s\n", body)
+	},
+}
+
+var ChangeAccountNameCmd = &cobra.Command{
+	Use:   "rename",
+	Short: "Change account name",
+	Run: func(cmd *cobra.Command, args []string) {
+		oldName, _ := cmd.Flags().GetString("name")
+		newName, _ := cmd.Flags().GetString("newname")
+		if oldName == "" || newName == "" {
+			log.Println("Old and new names are required")
+			return
+		}
+		data := map[string]string{"new_name": newName}
+		jsonData, err := json.Marshal(data)
+		if err != nil {
+			log.Printf("Error marshalling data: %v\n", err)
+			return
+		}
+		req, err := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/%s", url, oldName), bytes.NewBuffer(jsonData))
+		if err != nil {
+			log.Printf("Error making request: %v\n", err)
+			return
+		}
+		req.Header.Set("Content-Type", "application/json")
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Printf("Error making request: %v\n", err)
+			return
+		}
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Printf("Failed to read response body: %v\n", err)
+			return
+		}
+		log.Printf("Response: %s\n", body)
 	},
 }
 
@@ -130,5 +208,9 @@ func init() {
 	CreateAccountCmd.Flags().String("name", "", "Name of the account")
 	GetAccountCmd.Flags().String("name", "", "Name of the account")
 	UpdateAmountCmd.Flags().String("name", "", "Name of the account")
-	UpdateAmountCmd.Flags().Float64("amount", 0, "Amount to update the account with")
+	UpdateAmountCmd.Flags().Float64("balance", 0, "Balance to update the account with")
+	DeleteAccountCmd.Flags().String("name", "", "Name of the account")
+	ChangeAccountNameCmd.Flags().String("name", "", "Old name of the account")
+	ChangeAccountNameCmd.Flags().String("newname", "", "New name of the account")
+
 }

@@ -7,10 +7,12 @@ import (
 func main() {
 	app := fiber.New()
 
-	app.Post("/account/create", CreateAccount)
+	app.Post("/account", CreateAccount)
 	app.Get("/account/:name", GetAccount)
-	app.Post("/account/update", UpdateAmount)
+	//app.Put("/account/:name", UpdateAmount)
 	app.Get("/account", GetAllAccounts)
+	app.Delete("/account/:name", DeleteAccount)
+	app.Put("/account/:name", UpdateAccountName)
 
 	app.Listen(":8080")
 }
