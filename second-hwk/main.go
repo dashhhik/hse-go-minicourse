@@ -9,7 +9,7 @@ func main() {
 
 	app.Post("/account", CreateAccount)
 	app.Get("/account/:name", GetAccount)
-	//app.Put("/account/:name", UpdateAmount)
+	app.Put("/account/balance/:name", UpdateAmount)
 	app.Get("/account", GetAllAccounts)
 	app.Delete("/account/:name", DeleteAccount)
 	app.Put("/account/:name", UpdateAccountName)
