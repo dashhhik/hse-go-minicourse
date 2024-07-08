@@ -14,8 +14,5 @@ var isVowel = map[rune]bool{
 }
 
 func IsVowel(symbol rune) bool {
-	if _, ok := isVowel[symbol]; ok {
-		return true
-	}
-	return false
+	return isVowel[symbol]
 }

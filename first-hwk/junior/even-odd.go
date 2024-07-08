@@ -1,9 +1,5 @@
 package junior
 
-func IsEvenOrOdd(a int) string {
-	if a%2 == 0 {
-		return "Even"
-	} else {
-		return "Odd"
-	}
+func IsEvenOrOdd(a int) bool {
+	return a%2 == 0
 }
