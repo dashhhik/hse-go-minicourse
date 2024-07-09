@@ -21,7 +21,7 @@ GET /account/{name}
 
 3. Изменение баланса аккаунта
 ```
-PUT /account/{name}
+PATCH /account/{name}
 {
     "balance": 0
 }

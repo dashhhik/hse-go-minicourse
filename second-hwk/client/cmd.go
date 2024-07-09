@@ -96,7 +96,7 @@ var UpdateAmountCmd = &cobra.Command{
 			log.Printf("Error marshalling data: %v\n", err)
 			return
 		}
-		req, err := http.NewRequest(http.MethodPut, url+"/"+"balance/"+name, bytes.NewBuffer(jsonData))
+		req, err := http.NewRequest(http.MethodPatch, url+"/"+name, bytes.NewBuffer(jsonData))
 		if err != nil {
 			log.Printf("Error making request: %v\n", err)
 			return

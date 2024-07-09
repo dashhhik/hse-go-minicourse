@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"log"
 )
 
 func main() {
@@ -9,10 +10,10 @@ func main() {
 
 	app.Post("/account", CreateAccount)
 	app.Get("/account/:name", GetAccount)
-	app.Put("/account/balance/:name", UpdateAmount)
+	app.Patch("/account/:name", UpdateAmount)
 	app.Get("/account", GetAllAccounts)
 	app.Delete("/account/:name", DeleteAccount)
 	app.Put("/account/:name", UpdateAccountName)
 
-	app.Listen(":8080")
+	log.Fatal(app.Listen(":8080"))
 }
